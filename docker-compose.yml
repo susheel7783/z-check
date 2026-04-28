@@ -1,0 +1,54 @@
+services:
+  neo4j:
+    image: neo4j:5.13
+    container_name: zcheck-neo4j
+    ports:
+      - '7474:7474'
+      - '7687:7687'
+    environment:
+      NEO4J_AUTH: neo4j/${NEO4J_PASSWORD:-password}
+    volumes:
+      - neo4j_data:/data
+      - ./neo4j/init.cypher:/docker-entrypoint-initdb.d/init.cypher
+    command: ["neo4j", "console"]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:7474 || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: zcheck-backend
+    depends_on:
+      - neo4j
+    restart: on-failure
+    ports:
+      - '8080:8080'
+    environment:
+      BACKEND_BIND_ADDRESS: ':8080'
+      NEO4J_URI: neo4j://neo4j:7687
+      NEO4J_USER: ${NEO4J_USER:-neo4j}
+      NEO4J_PASSWORD: ${NEO4J_PASSWORD:-password}
+      WHATSAPP_API_URL: ${WHATSAPP_API_URL:-}
+      WHATSAPP_API_TOKEN: ${WHATSAPP_API_TOKEN:-}
+      ALERT_WHATSAPP_TO: ${ALERT_WHATSAPP_TO:-+1234567890}
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: zcheck-frontend
+    depends_on:
+      - backend
+    restart: on-failure
+    ports:
+      - '3000:80'
+    environment:
+      REACT_APP_API_URL: ${REACT_APP_API_URL:-http://localhost:8080}
+
+volumes:
+  neo4j_data:

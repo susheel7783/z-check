@@ -1,0 +1,57 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: zcheck-backend
+  labels:
+    app: zcheck-backend
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8080
+      targetPort: 8080
+      protocol: TCP
+      name: http
+  selector:
+    app: zcheck-backend
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: zcheck-frontend
+  labels:
+    app: zcheck-frontend
+spec:
+  type: LoadBalancer
+  ports:
+    - port: 80
+      targetPort: 80
+      protocol: TCP
+      name: http
+  selector:
+    app: zcheck-frontend
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: zcheck-ingress
+  annotations:
+    kubernetes.io/ingress.class: "gce"
+spec:
+  rules:
+    - host: zcheck.example.com
+      http:
+        paths:
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: zcheck-backend
+                port:
+                  number: 8080
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: zcheck-frontend
+                port:
+                  number: 80

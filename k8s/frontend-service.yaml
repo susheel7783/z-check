@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: zcheck-frontend
+  labels:
+    app: zcheck-frontend
+spec:
+  # Internal ClusterIP service for frontend traffic.
+  type: ClusterIP
+  # Internal service for the frontend deployment.
+  ports:
+    - name: http
+      port: 80
+      targetPort: 80
+      protocol: TCP
+  selector:
+    app: zcheck-frontend

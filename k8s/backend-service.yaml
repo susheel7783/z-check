@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: zcheck-backend
+  labels:
+    app: zcheck-backend
+spec:
+  # Backend service used by the ingress to route API and websocket traffic.
+  type: ClusterIP
+  # ClientIP affinity can help preserve WebSocket session behavior across the backend pods.
+  sessionAffinity: ClientIP
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+      protocol: TCP
+  selector:
+    app: zcheck-backend

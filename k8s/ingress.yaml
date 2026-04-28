@@ -1,0 +1,36 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: zcheck-ingress
+  annotations:
+    kubernetes.io/ingress.class: "gce"
+    kubernetes.io/ingress.allow-http: "true"
+    ingress.kubernetes.io/ssl-redirect: "true"
+spec:
+  # This ingress routes API and WebSocket traffic to the backend service,
+  # while all other browser traffic is routed to the frontend service.
+  rules:
+    - host: zcheck.example.com
+      http:
+        paths:
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: zcheck-backend
+                port:
+                  number: 8080
+          - path: /api/ws
+            pathType: Prefix
+            backend:
+              service:
+                name: zcheck-backend
+                port:
+                  number: 8080
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: zcheck-frontend
+                port:
+                  number: 80
