@@ -13,7 +13,7 @@ services:
     command: ["neo4j", "console"]
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:7474 || exit 1"]
+      test: ["CMD-SHELL", "wget -qO- http://localhost:7474 >/dev/null 2>&1 || exit 1"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -35,12 +35,23 @@ services:
       NEO4J_PASSWORD: ${NEO4J_PASSWORD:-password}
       WHATSAPP_API_URL: ${WHATSAPP_API_URL:-}
       WHATSAPP_API_TOKEN: ${WHATSAPP_API_TOKEN:-}
-      ALERT_WHATSAPP_TO: ${ALERT_WHATSAPP_TO:-+1234567890}
+      ALERT_WHATSAPP_TO: ${ALERT_WHATSAPP_TO:-+918765290618}
+      EMAIL_SMTP_HOST: ${EMAIL_SMTP_HOST:-}
+      EMAIL_SMTP_PORT: ${EMAIL_SMTP_PORT:-587}
+      EMAIL_USERNAME: ${EMAIL_USERNAME:-}
+      EMAIL_PASSWORD: ${EMAIL_PASSWORD:-}
+      ALERT_EMAIL_FROM: ${ALERT_EMAIL_FROM:-}
+      ALERT_EMAIL_TO: ${ALERT_EMAIL_TO:-}
+      ALERT_MODE: ${ALERT_MODE:-PRODUCTION}
+      GIN_MODE: ${GIN_MODE:-release}
+      JWT_SECRET: ${JWT_SECRET:-your-super-secret-jwt-key-change-this-in-production}
 
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:8080}
     container_name: zcheck-frontend
     depends_on:
       - backend

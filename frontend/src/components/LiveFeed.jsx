@@ -15,25 +15,25 @@ export default function LiveFeed({ logs }) {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className="rounded-3xl border border-slate-800/70 bg-slate-950/60 p-4 backdrop-blur-xl shadow-xl shadow-slate-950/40"
+      className="rounded-xl border border-slate-700/50 bg-slate-800/30 backdrop-blur-md overflow-hidden shadow-2xl shadow-slate-950/50"
     >
-      <div className="mb-3 flex items-center justify-between border-b border-slate-700/50 pb-3">
+      <div className="bg-gradient-to-r from-slate-800/50 to-slate-900/50 px-6 py-4 border-b border-slate-700/50 flex items-center justify-between">
         <div>
-          <p className="text-xs uppercase tracking-[0.32em] text-slate-500">System Output</p>
-          <h3 className="text-lg font-semibold text-white">Live Feed</h3>
+          <h3 className="text-lg font-bold text-white">Event Stream</h3>
+          <p className="text-xs text-slate-400 mt-1">Real-time system events and status changes</p>
         </div>
         <div className="flex items-center gap-2">
-          <span className="inline-flex h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-          <span className="text-xs text-slate-400">Streaming</span>
+          <span className="inline-flex h-2 w-2 rounded-full bg-green-500 animate-pulse" />
+          <span className="text-xs font-medium text-green-400">Live</span>
         </div>
       </div>
 
       <div
         ref={containerRef}
-        className="max-h-[200px] overflow-y-auto rounded-2xl border border-slate-700/50 bg-slate-950 p-4 font-mono text-sm text-slate-300 space-y-1"
+        className="max-h-64 overflow-y-auto bg-gradient-to-b from-slate-900/50 to-slate-950/50 p-4 font-mono text-sm space-y-2"
       >
         {logs.length === 0 ? (
-          <div className="text-slate-500">Waiting for events...</div>
+          <div className="text-center py-8 text-slate-500 text-xs">⏳ Waiting for events...</div>
         ) : (
           logs.map((log, idx) => (
             <motion.div
@@ -41,15 +41,16 @@ export default function LiveFeed({ logs }) {
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.2 }}
-              className={`text-xs ${
+              className={`px-3 py-2 rounded text-xs leading-relaxed flex gap-2 ${
                 log.type === 'error'
-                  ? 'text-rose-400'
+                  ? 'bg-red-500/10 text-red-300 border border-red-500/20'
                   : log.type === 'success'
-                  ? 'text-emerald-400'
-                  : 'text-slate-400'
+                  ? 'bg-green-500/10 text-green-300 border border-green-500/20'
+                  : 'bg-slate-700/30 text-slate-300 border border-slate-600/20'
               }`}
             >
-              <span className="text-slate-600">[{log.timestamp}]</span> {log.message}
+              <span className="text-slate-500 flex-shrink-0">[{log.timestamp}]</span>
+              <span className="flex-1">{log.message}</span>
             </motion.div>
           ))
         )}

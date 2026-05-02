@@ -1,13 +1,28 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import toast from 'react-hot-toast'
+import { toast } from 'react-hot-toast'
 
-export default function ExportReport({ endpoints, logs }) {
+export default function ExportReport({ endpoints, logs, apiBase }) {
   const [isExporting, setIsExporting] = useState(false)
 
-  const exportJSON = () => {
+  const fetchRecentLogs = async () => {
+    try {
+      const response = await fetch(`${apiBase}/api/reports/logs`)
+      if (!response.ok) {
+        throw new Error('Unable to fetch recent logs')
+      }
+      const payload = await response.json()
+      return payload.records || []
+    } catch (error) {
+      console.warn('Failed to load 24h report logs; falling back to live feed logs', error)
+      return logs.slice(0, 50)
+    }
+  }
+
+  const exportJSON = async () => {
     setIsExporting(true)
     try {
+      const recentLogs = await fetchRecentLogs()
       const report = {
         exportedAt: new Date().toISOString(),
         summary: {
@@ -28,7 +43,18 @@ export default function ExportReport({ endpoints, logs }) {
           serviceName: ep.serviceName,
           organizationName: ep.organizationName,
         })),
-        recentLogs: logs.slice(0, 50).map((log) => ({
+        graph: {
+          edges: endpoints.reduce((edges, ep) => {
+            if (ep.serviceName) {
+              edges.push({ source: ep.serviceName, target: ep.name, type: 'service-endpoint' })
+            }
+            if (ep.organizationName && ep.serviceName) {
+              edges.push({ source: ep.organizationName, target: ep.serviceName, type: 'organization-service' })
+            }
+            return edges
+          }, []),
+        },
+        recentLogs: recentLogs.slice(0, 50).map((log) => ({
           timestamp: log.timestamp,
           message: log.message,
           type: log.type,
@@ -55,7 +81,7 @@ export default function ExportReport({ endpoints, logs }) {
     }
   }
 
-  const exportCSV = () => {
+  const exportCSV = async () => {
     setIsExporting(true)
     try {
       // CSV header for endpoints
@@ -71,7 +97,7 @@ export default function ExportReport({ endpoints, logs }) {
       csv += '\n\n# Recent Activity\n'
       csv += 'Timestamp,Type,Message\n'
 
-      logs.slice(0, 50).forEach((log) => {
+      recentLogs.slice(0, 50).forEach((log) => {
         csv += `"${log.timestamp}","${log.type}","${log.message}"\n`
       })
 

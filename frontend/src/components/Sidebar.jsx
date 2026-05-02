@@ -24,7 +24,7 @@ function filterEndpoints(endpoints, query, selectedNode) {
   })
 }
 
-export default function Sidebar({ endpoints, selectedNode, onCheck, checking, apiBase }) {
+export default function Sidebar({ endpoints, selectedNode, onCheck, checking, apiBase, demoMode }) {
   const [query, setQuery] = useState('')
   const [open, setOpen] = useState(false)
   const [activeEndpoint, setActiveEndpoint] = useState(null)
@@ -76,30 +76,40 @@ export default function Sidebar({ endpoints, selectedNode, onCheck, checking, ap
   }
 
   return (
-    <div className="space-y-4 overflow-hidden rounded-3xl border border-slate-800/70 bg-slate-900/60 p-4 backdrop-blur-xl shadow-xl shadow-slate-950/40">
-      <div className="flex flex-col gap-3 border-b border-slate-700/50 pb-4">
-        <div>
-          <p className="text-sm uppercase tracking-[0.32em] text-slate-500">Impact Analysis</p>
-          <h2 className="text-xl font-semibold text-white">{title}</h2>
-        </div>
+    <div className="rounded-xl border border-slate-700/50 bg-slate-800/30 backdrop-blur-md overflow-hidden shadow-2xl shadow-slate-950/50 flex flex-col h-full">
+      {/* Header */}
+      <div className="bg-gradient-to-r from-slate-800/50 to-slate-900/50 px-6 py-4 border-b border-slate-700/50">
+        <h2 className="text-lg font-bold text-white">Monitored Endpoints</h2>
+        <p className="text-xs text-slate-400 mt-1">{filteredEndpoints.length} total</p>
+      </div>
+
+      {/* Search */}
+      <div className="px-4 py-3 border-b border-slate-700/50">
         <div className="relative">
           <MagnifyingGlassIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
           <input
-            className="w-full rounded-2xl border border-slate-700/70 bg-slate-950/70 py-3 pl-10 pr-4 text-sm text-slate-100 outline-none transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-500/20"
-            placeholder="Search by name or status"
+            className="w-full rounded-lg border border-slate-700/50 bg-slate-900/50 py-2 pl-9 pr-3 text-sm text-slate-100 outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-500/20"
+            placeholder="Search endpoints..."
             value={query}
             onChange={(event) => setQuery(event.target.value)}
           />
         </div>
       </div>
 
-      <div className="space-y-3 overflow-hidden rounded-3xl bg-slate-950/40 p-3">
-        {filteredEndpoints.length === 0 ? (
-          <div className="rounded-3xl border border-dashed border-slate-700/60 p-6 text-center text-slate-400">
-            No matching APIs found. Try a different search or click a node on the graph.
+      {/* Demo Mode Notice */}
+      {demoMode && (
+        <div className="mx-4 mt-3 rounded-lg border border-orange-500/30 bg-orange-500/10 p-3 text-xs text-orange-300">
+          📊 Demo mode • Live checks disabled
+        </div>
+      )}
+
+      {/* Endpoints List */}
+      <div className="flex-1 overflow-y-auto">{filteredEndpoints.length === 0 ? (
+          <div className="p-6 text-center text-slate-400">
+            <p className="text-sm">No endpoints found</p>
           </div>
         ) : (
-          filteredEndpoints.map((endpoint) => {
+          <div className="p-4 space-y-3">{filteredEndpoints.map((endpoint) => {
             const isUp = endpoint.status === 'UP'
             const isRecentlyChecked = recentlyChecked[endpoint.id]
             return (
@@ -108,57 +118,60 @@ export default function Sidebar({ endpoints, selectedNode, onCheck, checking, ap
                 animate={
                   isRecentlyChecked
                     ? {
-                        borderColor: isUp ? '#34d399' : '#fb7185',
+                        borderColor: isUp ? '#22c55e' : '#ef4444',
                         boxShadow: isUp
-                          ? '0 0 20px rgba(52, 211, 153, 0.3)'
-                          : '0 0 20px rgba(251, 113, 133, 0.3)',
+                          ? '0 0 12px rgba(34, 197, 94, 0.4)'
+                          : '0 0 12px rgba(239, 68, 68, 0.4)',
                       }
-                    : { borderColor: 'rgba(148, 163, 184, 0.5)', boxShadow: 'none' }
+                    : { borderColor: 'rgba(71, 85, 105, 0.5)', boxShadow: 'none' }
                 }
                 transition={{ duration: 0.6 }}
-                className="rounded-3xl border border-slate-800/80 bg-slate-900/70 p-4"
+                className="rounded-lg border bg-slate-900/50 p-3 hover:bg-slate-900/80 transition"
               >
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <p className="text-xs uppercase tracking-[0.24em] text-slate-500">{endpoint.serviceName || 'Service'}</p>
-                    <h3 className="mt-2 text-lg font-semibold text-slate-100">{endpoint.name || endpoint.id}</h3>
+                <div className="flex items-start justify-between gap-2 mb-2">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs text-slate-400 uppercase tracking-wide">{endpoint.serviceName || 'Service'}</p>
+                    <h3 className="text-sm font-semibold text-white truncate">{endpoint.name || endpoint.id}</h3>
                   </div>
-                  <span className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em] ${isUp ? 'bg-emerald-500/15 text-emerald-300' : 'bg-rose-500/15 text-rose-300'}`}>
+                  <div className={`flex-shrink-0 flex items-center gap-1 px-2 py-1 rounded text-xs font-bold ${isUp ? 'bg-green-500/20 text-green-300' : 'bg-red-500/20 text-red-300'}`}>
+                    <span className={`w-1.5 h-1.5 rounded-full ${isUp ? 'bg-green-400' : 'bg-red-400'} ${isUp ? 'animate-pulse' : ''}`}></span>
                     {isUp ? 'UP' : 'DOWN'}
-                  </span>
+                  </div>
                 </div>
 
-                <p className="mt-3 text-sm leading-6 text-slate-400">{endpoint.url}</p>
-                <div className="mt-4 grid gap-2 sm:grid-cols-2">
+                <p className="text-xs text-slate-500 truncate mb-3">{endpoint.url}</p>
+
+                <div className="grid grid-cols-2 gap-2">
                   <motion.button
                     type="button"
                     onClick={() => handleCheck(endpoint.id)}
-                    disabled={checking[endpoint.id]}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    className={`inline-flex items-center justify-center gap-2 rounded-2xl px-3 py-2 text-sm font-semibold transition ${checking[endpoint.id] ? 'bg-slate-700 text-slate-300 cursor-not-allowed' : 'bg-cyan-500 text-slate-950 hover:bg-cyan-400'}`}
+                    disabled={checking[endpoint.id] || demoMode}
+                    whileHover={{ scale: demoMode ? 1 : 1.05 }}
+                    whileTap={{ scale: demoMode ? 1 : 0.95 }}
+                    className={`text-xs font-medium py-1.5 rounded transition inline-flex items-center justify-center gap-1 ${checking[endpoint.id] || demoMode ? 'bg-slate-700/50 text-slate-400 cursor-not-allowed' : 'bg-blue-600/80 hover:bg-blue-600 text-white'}`}
                   >
                     {checking[endpoint.id] ? (
-                      <><ArrowPathIcon className="h-4 w-4 animate-spin" /> Scanning...</>
+                      <><ArrowPathIcon className="h-3 w-3 animate-spin" /></>
                     ) : (
-                      'Check Now'
+                      <>↻ Check</>
                     )}
                   </motion.button>
 
                   <motion.button
                     type="button"
                     onClick={() => openLogs(endpoint)}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    className="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-700/80 bg-slate-800 px-3 py-2 text-sm font-semibold text-slate-100 transition hover:border-cyan-400 hover:bg-slate-900"
+                    disabled={demoMode}
+                    whileHover={{ scale: demoMode ? 1 : 1.05 }}
+                    whileTap={{ scale: demoMode ? 1 : 0.95 }}
+                    className={`text-xs font-medium py-1.5 rounded transition inline-flex items-center justify-center gap-1 ${demoMode ? 'bg-slate-700/50 text-slate-400 cursor-not-allowed' : 'bg-slate-700/50 hover:bg-slate-700 text-slate-200'}`}
                   >
-                    <DocumentTextIcon className="h-4 w-4" />
-                    View History
+                    📋 History
                   </motion.button>
                 </div>
               </motion.div>
             )
-          })
+          })}
+          </div>
         )}
       </div>
 

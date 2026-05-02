@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useRef, useEffect, useState } from 'react'
 import ForceGraph2D from 'react-force-graph-2d'
 
 function buildGraph(endpoints) {
@@ -22,6 +22,7 @@ function buildGraph(endpoints) {
         id: orgKey,
         name: orgName,
         group: 'organization',
+        val: 9,
       }
     }
 
@@ -30,6 +31,7 @@ function buildGraph(endpoints) {
         id: serviceKey,
         name: serviceName,
         group: 'service',
+        val: 8,
       }
     }
 
@@ -39,6 +41,7 @@ function buildGraph(endpoints) {
       group: 'endpoint',
       status: endpointStatus,
       meta: endpoint,
+      val: 6,
     })
 
     links.push({
@@ -75,7 +78,15 @@ function buildGraph(endpoints) {
 }
 
 export default function GraphView({ endpoints, statusMap, selectedNode, onSelectNode, onHoverNode }) {
+  const graphRef = useRef()
+  const [graphReady, setGraphReady] = useState(false)
   const graphData = useMemo(() => buildGraph(endpoints), [endpoints])
+
+  useEffect(() => {
+    if (graphData.nodes.length > 0) {
+      setGraphReady(true)
+    }
+  }, [graphData])
 
   const getNodeStatus = (node) => {
     if (node.group !== 'endpoint') return 'UNKNOWN'
@@ -97,8 +108,17 @@ export default function GraphView({ endpoints, statusMap, selectedNode, onSelect
     return 6
   }
 
+  if (!graphReady) {
+    return (
+      <div className="w-full h-full flex items-center justify-center bg-slate-950">
+        <div className="text-slate-400">Loading dependency graph...</div>
+      </div>
+    )
+  }
+
   return (
     <ForceGraph2D
+      ref={graphRef}
       graphData={graphData}
       nodeLabel={(node) => node.name}
       nodeAutoColorBy="group"
@@ -126,6 +146,8 @@ export default function GraphView({ endpoints, statusMap, selectedNode, onSelect
 
         ctx.font = `${fontSize}px ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New'`
         ctx.fillStyle = '#e2e8f0'
+        ctx.textAlign = 'left'
+        ctx.textBaseline = 'middle'
         ctx.fillText(label, node.x + size + 6, node.y + fontSize / 2)
       }}
       linkColor={(link) => (link.isCritical ? '#fb7185' : 'rgba(148, 163, 184, 0.18)')}
@@ -158,7 +180,11 @@ export default function GraphView({ endpoints, statusMap, selectedNode, onSelect
       nodeRelSize={4}
       enableNavigationControls
       d3VelocityDecay={0.3}
-      warmupTicks={20}
+      d3AlphaDecay={0.05}
+      warmupTicks={100}
+      cooldownTicks={0}
+      minZoom={0.5}
+      maxZoom={50}
     />
   )
 }

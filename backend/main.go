@@ -9,6 +9,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -21,10 +22,21 @@ type AppConfig struct {
 	Neo4jPassword  string
 	WhatsAppAPIURL string
 	WhatsAppToken  string
+	WhatsAppTo     string
+	EmailSMTPHost  string
+	EmailSMTPPort  string
+	EmailUsername  string
+	EmailPassword  string
+	AlertEmailFrom string
+	AlertEmailTo   string
+	ALERT_MODE     string
+	JWTSecret      string
+	GinMode        string
 }
 
 func main() {
 	config := loadConfig()
+	gin.SetMode(config.GinMode)
 	initLogger()
 	driver, err := initNeo4jDriver(config.Neo4jURI, config.Neo4jUser, config.Neo4jPassword)
 	if err != nil {
@@ -39,7 +51,20 @@ func main() {
 	checkerEngine := NewCheckerEngine(driver, config, hub)
 	go checkerEngine.Start()
 
-	r := gin.Default()
+	r := gin.New()
+	r.Use(gin.Logger())
+	r.Use(gin.Recovery())
+	r.Use(cors.Default())
+
+	// Auth routes (public)
+	r.POST("/auth/signup", func(c *gin.Context) {
+		Signup(c, driver)
+	})
+	r.POST("/auth/login", func(c *gin.Context) {
+		Login(c, driver, config.JWTSecret)
+	})
+
+	// Public routes
 	r.GET("/health", func(c *gin.Context) {
 		if err := checkerEngine.VerifyDatabase(); err != nil {
 			c.JSON(http.StatusServiceUnavailable, gin.H{"status": "unhealthy", "error": "database connection failed"})
@@ -48,13 +73,116 @@ func main() {
 		c.JSON(http.StatusOK, gin.H{"status": "ok"})
 	})
 	r.GET("/metrics", gin.WrapH(promhttp.Handler()))
-	r.GET("/api/status", checkerEngine.StatusHandler)
-	r.GET("/api/endpoints/:id/history", checkerEngine.GetEndpointHistory)
-	r.GET("/api/endpoint-logs", checkerEngine.GetEndpointLogs)
-	r.GET("/api/ws", func(c *gin.Context) {
-		serveWs(hub, c.Writer, c.Request)
-	})
-	r.POST("/api/test-check", checkerEngine.TriggerManualCheck)
+
+	// Protected API routes
+	api := r.Group("/api")
+	api.Use(JWTMiddleware(config.JWTSecret))
+	{
+		api.GET("/status", checkerEngine.StatusHandler)
+		api.GET("/endpoints/:id/history", checkerEngine.GetEndpointHistory)
+		api.GET("/reports/logs", checkerEngine.GetRecentStatusRecords)
+		api.GET("/endpoint-logs", checkerEngine.GetEndpointLogs)
+		api.GET("/ws", func(c *gin.Context) {
+			serveWs(hub, c.Writer, c.Request)
+		})
+		api.POST("/test-check", checkerEngine.TriggerManualCheck)
+	}
+
+	// Dummy API endpoints for testing
+	dummyAPI := r.Group("/dummy")
+	{
+		dummyAPI.GET("/payments", func(c *gin.Context) {
+			c.JSON(http.StatusOK, gin.H{
+				"status":    "UP",
+				"service":   "Payments API",
+				"latency":   "23ms",
+				"timestamp": time.Now().Format(time.RFC3339),
+				"uptime":    "99.98%",
+			})
+		})
+		dummyAPI.GET("/orders", func(c *gin.Context) {
+			// Simulate occasional failures
+			if time.Now().Unix()%10 == 0 {
+				c.JSON(http.StatusServiceUnavailable, gin.H{
+					"status":    "DOWN",
+					"service":   "Orders API",
+					"error":     "Database connection timeout",
+					"timestamp": time.Now().Format(time.RFC3339),
+				})
+				return
+			}
+			c.JSON(http.StatusOK, gin.H{
+				"status":    "UP",
+				"service":   "Orders API",
+				"latency":   "45ms",
+				"timestamp": time.Now().Format(time.RFC3339),
+				"uptime":    "99.95%",
+			})
+		})
+		dummyAPI.GET("/inventory", func(c *gin.Context) {
+			c.JSON(http.StatusOK, gin.H{
+				"status":    "UP",
+				"service":   "Inventory API",
+				"latency":   "31ms",
+				"timestamp": time.Now().Format(time.RFC3339),
+				"uptime":    "99.99%",
+			})
+		})
+		dummyAPI.GET("/gateway", func(c *gin.Context) {
+			c.JSON(http.StatusOK, gin.H{
+				"status":    "UP",
+				"service":   "Gateway API",
+				"latency":   "18ms",
+				"timestamp": time.Now().Format(time.RFC3339),
+				"uptime":    "99.97%",
+			})
+		})
+		dummyAPI.GET("/auth", func(c *gin.Context) {
+			c.JSON(http.StatusOK, gin.H{
+				"status":    "UP",
+				"service":   "Authentication API",
+				"latency":   "12ms",
+				"timestamp": time.Now().Format(time.RFC3339),
+				"uptime":    "99.99%",
+			})
+		})
+		dummyAPI.POST("/alert-test", func(c *gin.Context) {
+			var alertData struct {
+				ServiceName string `json:"service_name" binding:"required"`
+				Email       string `json:"email" binding:"required,email"`
+				Message     string `json:"message" binding:"required"`
+			}
+
+			if err := c.BindJSON(&alertData); err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request"})
+				return
+			}
+
+			// Send test alert email
+			err := SendAlertEmail(
+				config.EmailSMTPHost,
+				config.EmailSMTPPort,
+				config.EmailUsername,
+				config.EmailPassword,
+				config.AlertEmailFrom,
+				alertData.Email,
+				alertData.ServiceName,
+				alertData.Message,
+			)
+
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+				return
+			}
+
+			c.JSON(http.StatusOK, gin.H{
+				"success":   true,
+				"message":   "Alert email sent successfully",
+				"recipient": alertData.Email,
+				"timestamp": time.Now().Format(time.RFC3339),
+			})
+		})
+	}
 
 	logger.Info("starting backend", "address", config.BindAddress)
 
@@ -98,6 +226,16 @@ func loadConfig() AppConfig {
 		Neo4jPassword:  getEnv("NEO4J_PASSWORD", "password"),
 		WhatsAppAPIURL: getEnv("WHATSAPP_API_URL", "https://graph.facebook.com/v16.0/PHONE_NUMBER_ID/messages"),
 		WhatsAppToken:  getEnv("WHATSAPP_API_TOKEN", ""),
+		WhatsAppTo:     getEnv("ALERT_WHATSAPP_TO", ""),
+		EmailSMTPHost:  getEnv("EMAIL_SMTP_HOST", ""),
+		EmailSMTPPort:  getEnv("EMAIL_SMTP_PORT", "587"),
+		EmailUsername:  getEnv("EMAIL_USERNAME", ""),
+		EmailPassword:  getEnv("EMAIL_PASSWORD", ""),
+		AlertEmailFrom: getEnv("ALERT_EMAIL_FROM", ""),
+		AlertEmailTo:   getEnv("ALERT_EMAIL_TO", ""),
+		ALERT_MODE:     getEnv("ALERT_MODE", "PRODUCTION"),
+		JWTSecret:      getEnv("JWT_SECRET", "your-secret-key-change-this-in-production"),
+		GinMode:        getEnv("GIN_MODE", gin.ReleaseMode),
 	}
 }
 

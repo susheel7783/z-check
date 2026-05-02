@@ -1,4 +1,4 @@
-FROM golang:1.22-alpine AS builder
+FROM golang:1.25-alpine AS builder
 
 # Install build dependencies
 RUN apk add --no-cache git ca-certificates
@@ -25,9 +25,6 @@ COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 
 # Copy binary from builder
 COPY --from=builder /build/zcheck-backend /usr/local/bin/zcheck-backend
-
-# Add timezone data for time operations
-COPY --from=builder /usr/share/zoneinfo /usr/share/zoneinfo
 
 EXPOSE 8080
 
