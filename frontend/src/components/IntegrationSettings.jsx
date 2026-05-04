@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { CheckCircleIcon, ExclamationIcon } from '@heroicons/react/24/outline'
+import { CheckCircleIcon } from '@heroicons/react/24/outline'
 
 export default function IntegrationSettings() {
   const integrations = [
@@ -41,10 +41,10 @@ export default function IntegrationSettings() {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, delay: 0.3 }}
-      className="rounded-xl border border-slate-700/50 bg-slate-800/30 backdrop-blur-md overflow-hidden shadow-2xl shadow-slate-950/50"
+      className="rounded-xl border border-slate-700/50 bg-slate-900 overflow-hidden shadow"
     >
       {/* Header */}
-      <div className="bg-gradient-to-r from-slate-800/50 to-slate-900/50 px-6 py-4 border-b border-slate-700/50">
+      <div className="bg-slate-900 px-6 py-4 border-b border-slate-700">
         <h3 className="text-lg font-bold text-white">Integrations & API</h3>
         <p className="text-xs text-slate-400 mt-1">Connect to external monitoring and alerting platforms</p>
       </div>

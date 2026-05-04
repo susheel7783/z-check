@@ -49,7 +49,7 @@ export default function Auth({ apiBase, onLogin }) {
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 px-4 py-6 md:px-8">
-      <div className="mx-auto max-w-md rounded-3xl border border-slate-800/70 bg-slate-900/60 p-8 shadow-2xl shadow-slate-950/30 backdrop-blur-xl">
+      <div className="mx-auto max-w-md rounded-3xl border border-slate-800/70 bg-slate-900 p-8 shadow-lg shadow-slate-950/20">
         <div className="mb-8 text-center">
           <p className="text-xs uppercase tracking-[0.4em] text-slate-500">Z-Check Access</p>
           <h1 className="mt-4 text-3xl font-semibold text-white">{mode === 'login' ? 'Sign In' : 'Create Account'}</h1>

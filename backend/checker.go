@@ -623,8 +623,8 @@ func (e *CheckerEngine) StatusHandler(c *gin.Context) {
 
 	result, err := session.Run(ctx, `
 		MATCH (ep:Endpoint)
-		OPTIONAL MATCH (ep)<-[:DEPENDS_ON]-(s:Service)
-		OPTIONAL MATCH (s)<-[:USES]-(o:Organization)
+		OPTIONAL MATCH (s:Service)-[:DEPENDS_ON]->(ep)
+		OPTIONAL MATCH (o:Organization)-[:USES]->(s)
 		RETURN ep.id AS id, ep.name AS name, ep.url AS url, ep.type AS type, 
 			   ep.method AS method, ep.status AS status, ep.lastChecked AS lastChecked,
 			   s.name AS serviceName, o.name AS organizationName

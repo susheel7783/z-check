@@ -15,9 +15,9 @@ export default function LiveFeed({ logs }) {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className="rounded-xl border border-slate-700/50 bg-slate-800/30 backdrop-blur-md overflow-hidden shadow-2xl shadow-slate-950/50"
+      className="rounded-xl border border-slate-700/50 bg-slate-800 overflow-hidden shadow"
     >
-      <div className="bg-gradient-to-r from-slate-800/50 to-slate-900/50 px-6 py-4 border-b border-slate-700/50 flex items-center justify-between">
+      <div className="bg-slate-900 px-6 py-4 border-b border-slate-700 flex items-center justify-between">
         <div>
           <h3 className="text-lg font-bold text-white">Event Stream</h3>
           <p className="text-xs text-slate-400 mt-1">Real-time system events and status changes</p>
@@ -30,7 +30,7 @@ export default function LiveFeed({ logs }) {
 
       <div
         ref={containerRef}
-        className="max-h-64 overflow-y-auto bg-gradient-to-b from-slate-900/50 to-slate-950/50 p-4 font-mono text-sm space-y-2"
+        className="max-h-64 overflow-y-auto bg-slate-900 p-4 font-mono text-sm space-y-2"
       >
         {logs.length === 0 ? (
           <div className="text-center py-8 text-slate-500 text-xs">⏳ Waiting for events...</div>

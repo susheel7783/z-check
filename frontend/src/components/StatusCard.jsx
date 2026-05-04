@@ -11,7 +11,7 @@ export default function StatusCard({ endpoint, isHovered, onHover, onLeave, onCh
       onMouseEnter={() => onHover(endpoint.id)}
       onMouseLeave={onLeave}
       data-endpoint-id={endpoint.id}
-      className={`group w-full text-left rounded-3xl border border-slate-700/80 bg-slate-800/50 backdrop-blur-xl p-5 transition-all duration-200 ease-out shadow-xl shadow-slate-950/20 
+      className={`group w-full text-left rounded-3xl border border-slate-700/80 bg-slate-900 p-5 transition-all duration-200 ease-out shadow 
         ${isHovered ? 'ring-2 ring-cyan-400/40 scale-[1.01]' : 'hover:-translate-y-0.5 hover:shadow-slate-900/40'}
       `}
     >

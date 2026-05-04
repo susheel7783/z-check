@@ -43,10 +43,10 @@ export default function AlertNotifications({ alertMode, alertChannels }) {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, delay: 0.2 }}
-      className="rounded-xl border border-slate-700/50 bg-slate-800/30 backdrop-blur-md overflow-hidden shadow-2xl shadow-slate-950/50"
+      className="rounded-xl border border-slate-700/50 bg-slate-900 overflow-hidden shadow"
     >
       {/* Header */}
-      <div className="bg-gradient-to-r from-slate-800/50 to-slate-900/50 px-6 py-4 border-b border-slate-700/50 flex items-center justify-between">
+      <div className="bg-slate-900 px-6 py-4 border-b border-slate-700/50 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <BellIcon className="w-5 h-5 text-blue-400" />
           <div>
@@ -92,7 +92,7 @@ export default function AlertNotifications({ alertMode, alertChannels }) {
                       <p className={`text-sm font-semibold ${info.textColor}`}>{info.label}</p>
                       <p className="text-xs text-slate-500">Active</p>
                     </div>
-                    <div className={`ml-auto w-2 h-2 rounded-full bg-gradient-to-r ${info.color} animate-pulse`}></div>
+                    <div className="ml-auto w-2 h-2 rounded-full bg-slate-400 animate-pulse"></div>
                   </motion.div>
                 )
               })}

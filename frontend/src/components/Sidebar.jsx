@@ -76,9 +76,9 @@ export default function Sidebar({ endpoints, selectedNode, onCheck, checking, ap
   }
 
   return (
-    <div className="rounded-xl border border-slate-700/50 bg-slate-800/30 backdrop-blur-md overflow-hidden shadow-2xl shadow-slate-950/50 flex flex-col h-full">
+    <div className="rounded-xl border border-slate-700/50 bg-slate-800 overflow-hidden shadow flex flex-col h-full">
       {/* Header */}
-      <div className="bg-gradient-to-r from-slate-800/50 to-slate-900/50 px-6 py-4 border-b border-slate-700/50">
+      <div className="bg-slate-900 px-6 py-4 border-b border-slate-700">
         <h2 className="text-lg font-bold text-white">Monitored Endpoints</h2>
         <p className="text-xs text-slate-400 mt-1">{filteredEndpoints.length} total</p>
       </div>
@@ -186,7 +186,7 @@ export default function Sidebar({ endpoints, selectedNode, onCheck, checking, ap
             leaveFrom="opacity-100"
             leaveTo="opacity-0"
           >
-            <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm" />
+            <div className="fixed inset-0 bg-slate-950/80" />
           </Transition.Child>
 
           <div className="fixed inset-0 overflow-hidden">

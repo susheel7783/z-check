@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"net/smtp"
 	"os"
 	"os/signal"
 	"syscall"
@@ -73,20 +74,14 @@ func main() {
 		c.JSON(http.StatusOK, gin.H{"status": "ok"})
 	})
 	r.GET("/metrics", gin.WrapH(promhttp.Handler()))
-
-	// Protected API routes
-	api := r.Group("/api")
-	api.Use(JWTMiddleware(config.JWTSecret))
-	{
-		api.GET("/status", checkerEngine.StatusHandler)
-		api.GET("/endpoints/:id/history", checkerEngine.GetEndpointHistory)
-		api.GET("/reports/logs", checkerEngine.GetRecentStatusRecords)
-		api.GET("/endpoint-logs", checkerEngine.GetEndpointLogs)
-		api.GET("/ws", func(c *gin.Context) {
-			serveWs(hub, c.Writer, c.Request)
-		})
-		api.POST("/test-check", checkerEngine.TriggerManualCheck)
-	}
+	r.GET("/api/status", checkerEngine.StatusHandler)
+	r.GET("/api/endpoints/:id/history", checkerEngine.GetEndpointHistory)
+	r.GET("/api/reports/logs", checkerEngine.GetRecentStatusRecords)
+	r.GET("/api/endpoint-logs", checkerEngine.GetEndpointLogs)
+	r.GET("/api/ws", func(c *gin.Context) {
+		serveWs(hub, c.Writer, c.Request)
+	})
+	r.POST("/api/test-check", checkerEngine.TriggerManualCheck)
 
 	// Dummy API endpoints for testing
 	dummyAPI := r.Group("/dummy")
@@ -216,6 +211,66 @@ func main() {
 	}
 	checkerEngine.Stop()
 	logger.Info("shutdown complete")
+}
+
+// SendAlertEmail sends an alert email via SMTP
+func SendAlertEmail(smtpHost, smtpPort, username, password, from, to, service, message string) error {
+	if smtpHost == "" || to == "" {
+		return fmt.Errorf("email not configured: missing SMTP host or recipient")
+	}
+
+	// Create email headers and body
+	headers := map[string]string{
+		"From":    from,
+		"To":      to,
+		"Subject": fmt.Sprintf("[ALERT] %s Status Changed", service),
+	}
+
+	// Build email body
+	body := fmt.Sprintf(`
+Z-Check Pro - Service Alert
+============================
+
+Service: %s
+Alert Time: %s
+Status: CRITICAL
+
+Message:
+%s
+
+---
+This is an automated alert from Z-Check Pro monitoring system.
+`, service, time.Now().Format("2006-01-02 15:04:05"), message)
+
+	// Prepare the message
+	var msg string
+	for k, v := range headers {
+		msg += fmt.Sprintf("%s: %s\r\n", k, v)
+	}
+	msg += "\r\n" + body
+
+	// Try to send email if SMTP is configured
+	if smtpHost != "" {
+		addr := fmt.Sprintf("%s:%s", smtpHost, smtpPort)
+		auth := smtp.PlainAuth("", username, password, smtpHost)
+
+		err := smtp.SendMail(
+			addr,
+			auth,
+			from,
+			[]string{to},
+			[]byte(msg),
+		)
+
+		if err != nil {
+			logger.Error("Failed to send email", "error", err)
+			return err
+		}
+	}
+
+	// Log the alert regardless
+	logger.Info("Alert sent", "service", service, "to", to, "message", message)
+	return nil
 }
 
 func loadConfig() AppConfig {

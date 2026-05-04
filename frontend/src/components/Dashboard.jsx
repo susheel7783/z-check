@@ -60,7 +60,7 @@ function formatRelativeAge(timestamp, now) {
   return `${minutes} minute${minutes === 1 ? '' : 's'} ago`
 }
 
-export default function Dashboard({ token, username, onLogout }) {
+export default function Dashboard({ token, username, theme, onToggleTheme, onLogout }) {
   const [endpoints, setEndpoints] = useState([])
   const [statusMap, setStatusMap] = useState({})
   const [selectedNode, setSelectedNode] = useState(null)
@@ -168,6 +168,23 @@ export default function Dashboard({ token, username, onLogout }) {
   const demoMode = useDemoGraph || !liveEndpointsAvailable
   const displayedEndpoints = demoMode ? sampleEndpoints : endpoints.length > 0 ? endpoints : sampleEndpoints
 
+  const themeClasses = {
+    body: theme === 'dark'
+      ? 'bg-slate-900 text-slate-100'
+      : 'bg-white text-slate-950',
+    panel: theme === 'dark'
+      ? 'bg-slate-800 border border-slate-700'
+      : 'bg-slate-50 border border-slate-200',
+    panelHeader: theme === 'dark'
+      ? 'bg-slate-700 border-b border-slate-600'
+      : 'bg-slate-100 border-b border-slate-200',
+    text: theme === 'dark' ? 'text-slate-100' : 'text-slate-950',
+    muted: theme === 'dark' ? 'text-slate-400' : 'text-slate-600',
+    button: theme === 'dark'
+      ? 'bg-slate-700 hover:bg-slate-600 text-slate-100 border border-slate-600'
+      : 'bg-slate-200 hover:bg-slate-300 text-slate-950 border border-slate-300',
+  }
+
   const handleManualCheck = async (endpointId) => {
     setChecking((prev) => ({ ...prev, [endpointId]: true }))
 
@@ -191,96 +208,102 @@ export default function Dashboard({ token, username, onLogout }) {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-slate-100">
-      <div className="mx-auto max-w-7xl px-4 py-8 md:px-6 lg:px-8">
-        {/* Header */}
-        <header className="mb-8">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <div className="flex items-center gap-3 mb-2">
-                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center">
-                  <span className="text-white font-bold text-lg">Z</span>
-                </div>
-                <div>
-                  <h1 className="text-2xl font-bold text-white tracking-tight">Z-Check Pro</h1>
-                  <p className="text-xs text-slate-400">Enterprise Monitoring Platform</p>
-                </div>
+    <div className={`min-h-screen ${themeClasses.body}`}>
+      <div className={`border-b ${theme === 'dark' ? 'border-slate-700 bg-slate-800' : 'border-slate-200 bg-slate-50'} sticky top-0 z-40`}>
+        <div className="mx-auto max-w-7xl px-4 py-4 md:px-6 lg:px-8">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-blue-600 flex items-center justify-center shadow-md">
+                <span className="text-white font-bold text-lg">Z</span>
+              </div>
+              <div>
+                <h1 className={`text-xl font-semibold ${themeClasses.text}`}>Z-Check</h1>
+                <p className={`text-xs ${themeClasses.muted}`}>Monitoring Platform</p>
               </div>
             </div>
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-800/50 border border-slate-700/50">
+            <div className="flex items-center gap-2">
+              <div className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm ${theme === 'dark' ? 'bg-slate-800 border border-slate-700' : 'bg-slate-100 border border-slate-200'}`}>
                 <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-                <span className="text-sm text-slate-300">Live • {username}</span>
+                <span className={themeClasses.text}>Live</span>
               </div>
               <button
                 type="button"
                 onClick={() => setUseDemoGraph((prev) => !prev)}
-                className="px-4 py-2 rounded-lg bg-slate-700/50 hover:bg-slate-700 text-sm font-medium text-slate-200 transition border border-slate-600/50"
+                className={`px-3 py-2 rounded-md text-sm font-medium transition ${themeClasses.button}`}
               >
-                {demoMode ? '📊 View Live' : '🎬 Demo Mode'}
+                {demoMode ? 'View Live' : 'Demo'}
+              </button>
+              <button
+                type="button"
+                onClick={onToggleTheme}
+                className={`px-3 py-2 rounded-md text-sm font-medium transition ${themeClasses.button}`}
+              >
+                {theme === 'dark' ? '☀️' : '🌙'}
               </button>
               <button
                 type="button"
                 onClick={onLogout}
-                className="px-4 py-2 rounded-lg bg-red-600/20 hover:bg-red-600/30 text-sm font-medium text-red-300 transition border border-red-500/30"
+                className={`px-3 py-2 rounded-md text-sm font-medium transition ${theme === 'dark' ? 'bg-red-900/30 hover:bg-red-900/50 text-red-300 border border-red-800' : 'bg-red-50 hover:bg-red-100 text-red-700 border border-red-200'}`}
               >
                 Sign Out
               </button>
             </div>
           </div>
+        </div>
+      </div>
 
-          {/* Status Bar */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-            <div className="px-4 py-3 rounded-lg bg-slate-800/30 border border-slate-700/50 backdrop-blur-sm">
-              <p className="text-xs text-slate-400 uppercase tracking-wider mb-1">Alert Mode</p>
-              <p className="text-lg font-semibold text-white">{alertMode}</p>
-            </div>
-            <div className="px-4 py-3 rounded-lg bg-slate-800/30 border border-slate-700/50 backdrop-blur-sm">
-              <p className="text-xs text-slate-400 uppercase tracking-wider mb-1">Active Channels</p>
-              <p className="text-lg font-semibold text-blue-400">{alertChannels.length || 0}</p>
-            </div>
-            <div className="px-4 py-3 rounded-lg bg-slate-800/30 border border-slate-700/50 backdrop-blur-sm">
-              <p className="text-xs text-slate-400 uppercase tracking-wider mb-1">Monitored</p>
-              <p className="text-lg font-semibold text-emerald-400">{displayedEndpoints.length}</p>
-            </div>
-            <div className="px-4 py-3 rounded-lg bg-slate-800/30 border border-slate-700/50 backdrop-blur-sm">
-              <p className="text-xs text-slate-400 uppercase tracking-wider mb-1">Status</p>
-              <p className="text-lg font-semibold text-green-400">Operational</p>
-            </div>
+      <div className="mx-auto max-w-7xl px-4 py-8 md:px-6 lg:px-8">
+        {/* Status Bar */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
+          <div className={`px-4 py-3 rounded-lg ${themeClasses.panel}`}>
+            <p className={`text-xs ${themeClasses.muted} uppercase tracking-wider mb-1`}>Alert Mode</p>
+            <p className={`text-lg font-semibold ${themeClasses.text}`}>{alertMode}</p>
           </div>
+          <div className={`px-4 py-3 rounded-lg ${themeClasses.panel}`}>
+            <p className={`text-xs ${themeClasses.muted} uppercase tracking-wider mb-1`}>Active Channels</p>
+            <p className={`text-lg font-semibold ${theme === 'dark' ? 'text-blue-400' : 'text-blue-600'}`}>{alertChannels.length || 0}</p>
+          </div>
+          <div className={`px-4 py-3 rounded-lg ${themeClasses.panel}`}>
+            <p className={`text-xs ${themeClasses.muted} uppercase tracking-wider mb-1`}>Monitored</p>
+            <p className={`text-lg font-semibold ${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'}`}>{displayedEndpoints.length}</p>
+          </div>
+          <div className={`px-4 py-3 rounded-lg ${themeClasses.panel}`}>
+            <p className={`text-xs ${themeClasses.muted} uppercase tracking-wider mb-1`}>Status</p>
+            <p className={`text-lg font-semibold ${theme === 'dark' ? 'text-green-400' : 'text-green-600'}`}>Operational</p>
+          </div>
+        </div>
 
-          {/* Channels & Mode Info */}
-          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-            <div className="flex flex-wrap gap-2">
-              {alertChannels.length > 0 ? (
-                <>
-                  <span className="text-xs text-slate-400 uppercase tracking-wider mr-2">Channels:</span>
-                  {alertChannels.map((channel) => {
-                    const colors = {
-                      'email': 'from-amber-500/20 to-amber-600/20 text-amber-300 border-amber-500/30',
-                      'whatsapp': 'from-green-500/20 to-green-600/20 text-green-300 border-green-500/30',
-                      'log': 'from-slate-500/20 to-slate-600/20 text-slate-300 border-slate-500/30',
-                    }
-                    const colorClass = colors[channel.toLowerCase()] || 'from-blue-500/20 to-blue-600/20 text-blue-300 border-blue-500/30'
-                    return (
-                      <span key={channel} className={`px-3 py-1 rounded-lg text-xs font-medium bg-gradient-to-r ${colorClass} border backdrop-blur-sm`}>
-                        ✓ {channel}
-                      </span>
-                    )
-                  })}
-                </>
-              ) : (
-                <span className="px-3 py-1 rounded-lg text-xs font-medium bg-red-500/10 text-red-300 border border-red-500/30">⚠ No alert channels configured</span>
-              )}
-            </div>
-            {demoMode && (
-              <div className="px-4 py-2 rounded-lg bg-orange-500/10 text-orange-300 text-xs border border-orange-500/30 flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-orange-400 animate-pulse"></span>
-                {liveEndpointsAvailable ? 'Demo mode active' : 'No live data • Demo mode active'}
-              </div>
+        {/* Channels & Mode Info */}
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-8">
+          <div className="flex flex-wrap gap-2">
+            {alertChannels.length > 0 ? (
+              <>
+                <span className={`text-xs ${themeClasses.muted} uppercase tracking-wider mr-2`}>Channels:</span>
+                {alertChannels.map((channel) => {
+                  const colors = {
+                    'email': `${theme === 'dark' ? 'bg-amber-900 text-amber-300 border-amber-700' : 'bg-amber-100 text-amber-700 border-amber-300'}`,
+                    'whatsapp': `${theme === 'dark' ? 'bg-green-900 text-green-300 border-green-700' : 'bg-green-100 text-green-700 border-green-300'}`,
+                    'log': `${theme === 'dark' ? 'bg-slate-700 text-slate-300 border-slate-600' : 'bg-slate-200 text-slate-700 border-slate-300'}`,
+                  }
+                  const colorClass = colors[channel.toLowerCase()] || `${theme === 'dark' ? 'bg-blue-900 text-blue-300 border-blue-700' : 'bg-blue-100 text-blue-700 border-blue-300'}`
+                  return (
+                    <span key={channel} className={`px-3 py-1 rounded-md text-xs font-medium border ${colorClass}`}>
+                      ✓ {channel}
+                    </span>
+                  )
+                })}
+              </>
+            ) : (
+              <span className={`px-3 py-1 rounded-md text-xs font-medium ${theme === 'dark' ? 'bg-red-900 text-red-300 border border-red-700' : 'bg-red-100 text-red-700 border border-red-300'}`}>⚠ No alert channels configured</span>
             )}
           </div>
-        </header>
+          {demoMode && (
+            <div className={`px-4 py-2 rounded-md text-xs flex items-center gap-2 ${theme === 'dark' ? 'bg-orange-900 text-orange-300 border border-orange-700' : 'bg-orange-100 text-orange-700 border border-orange-300'}`}>
+              <span className="w-2 h-2 rounded-full bg-orange-500 animate-pulse"></span>
+              {liveEndpointsAvailable ? 'Demo mode active' : 'No live data • Demo mode active'}
+            </div>
+          )}
+        </div>
 
         {/* Main Content Grid */}
         <div className="grid gap-6 mb-8">
@@ -299,7 +322,7 @@ export default function Dashboard({ token, username, onLogout }) {
           {/* Main Dashboard Grid */}
           <div className="grid gap-6 lg:grid-cols-3">
             {/* Left Panel - Endpoints List */}
-            <div className="lg:col-span-1">
+            <div className="lg:col-span-1 flex flex-col">
               <Sidebar
                 endpoints={displayedEndpoints}
                 selectedNode={selectedNode}
@@ -311,12 +334,12 @@ export default function Dashboard({ token, username, onLogout }) {
             </div>
 
             {/* Center/Right - Graph */}
-            <div className="lg:col-span-2">
-              <div className="rounded-xl border border-slate-700/50 bg-slate-800/30 backdrop-blur-md overflow-hidden shadow-2xl shadow-slate-950/50">
-                <div className="bg-gradient-to-r from-slate-800/50 to-slate-900/50 px-6 py-4 border-b border-slate-700/50 flex items-center justify-between">
+            <div className="lg:col-span-2 flex flex-col">
+              <div className={`rounded-lg ${themeClasses.panel} overflow-hidden shadow ${theme === 'dark' ? 'shadow-slate-950/10' : 'shadow-slate-400/10'} flex flex-col h-full`}>
+                <div className={`${theme === 'dark' ? 'bg-slate-800' : 'bg-slate-100'} px-6 py-4 border-b ${theme === 'dark' ? 'border-slate-700' : 'border-slate-300'} flex items-center justify-between flex-shrink-0`}>
                   <div>
-                    <h2 className="text-lg font-bold text-white">Service Dependency Graph</h2>
-                    <p className="text-xs text-slate-400 mt-1">Real-time service relationships and health status</p>
+                    <h2 className={`text-lg font-bold ${theme === 'dark' ? 'text-white' : 'text-slate-950'} tracking-tight`}>Service Dependency Graph</h2>
+                    <p className={`text-xs ${theme === 'dark' ? 'text-slate-400' : 'text-slate-600'} mt-1`}>Real-time service relationships and health status</p>
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
@@ -324,13 +347,14 @@ export default function Dashboard({ token, username, onLogout }) {
                   </div>
                 </div>
 
-                <div className="h-[600px] w-full overflow-hidden bg-gradient-to-b from-slate-900/50 to-slate-950/50">
+                <div className={`flex-1 w-full min-h-[500px] overflow-hidden rounded-b-lg ${theme === 'dark' ? 'bg-slate-900' : 'bg-white'}`}>
                   <GraphView
                     endpoints={displayedEndpoints}
                     statusMap={statusMap}
                     selectedNode={selectedNode}
                     onSelectNode={setSelectedNode}
                     onHoverNode={setHoveredId}
+                    theme={theme}
                   />
                 </div>
               </div>

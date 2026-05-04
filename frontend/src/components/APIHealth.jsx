@@ -69,13 +69,13 @@ export default function APIHealth({ apiBase, token }) {
   const getStatusColor = (status) => {
     switch (status) {
       case 'healthy':
-        return 'from-green-500/20 to-green-600/20 border-green-500/30'
+        return 'bg-slate-950/80 border-green-500/30 text-green-300'
       case 'degraded':
-        return 'from-yellow-500/20 to-yellow-600/20 border-yellow-500/30'
+        return 'bg-slate-950/80 border-yellow-500/30 text-yellow-300'
       case 'down':
-        return 'from-red-500/20 to-red-600/20 border-red-500/30'
+        return 'bg-slate-950/80 border-red-500/30 text-red-300'
       default:
-        return 'from-slate-500/20 to-slate-600/20 border-slate-500/30'
+        return 'bg-slate-950/80 border-slate-500/30 text-slate-200'
     }
   }
 
@@ -124,10 +124,10 @@ export default function APIHealth({ apiBase, token }) {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className="rounded-xl border border-slate-700/50 bg-slate-800/30 backdrop-blur-md overflow-hidden shadow-2xl shadow-slate-950/50"
+      className="rounded-xl border border-slate-700/50 bg-slate-900 overflow-hidden shadow"
     >
       {/* Header */}
-      <div className="bg-gradient-to-r from-slate-800/50 to-slate-900/50 px-6 py-4 border-b border-slate-700/50">
+      <div className="bg-slate-900 px-6 py-4 border-b border-slate-700/50">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             {health && getStatusIcon(health.status)}
@@ -141,7 +141,7 @@ export default function APIHealth({ apiBase, token }) {
             disabled={loading}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="px-3 py-2 rounded-lg bg-blue-600/50 hover:bg-blue-600 text-blue-200 text-xs font-medium transition disabled:opacity-50"
+            className="px-3 py-2 rounded-lg bg-blue-600/80 hover:bg-blue-600 text-blue-200 text-xs font-medium transition disabled:opacity-50"
           >
             {loading ? (
               <ArrowPathIcon className="w-4 h-4 animate-spin inline" />
@@ -159,7 +159,7 @@ export default function APIHealth({ apiBase, token }) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.3 }}
-            className={`rounded-lg border p-4 bg-gradient-to-r ${getStatusColor(health.status)}`}
+            className={`rounded-lg border p-4 ${getStatusColor(health.status)}`}
           >
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">

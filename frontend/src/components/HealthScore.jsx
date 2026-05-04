@@ -43,9 +43,9 @@ export default function HealthScore({ endpoints }) {
   }, [endpoints, timeRange])
 
   const getScoreColor = () => {
-    if (score >= 95) return 'from-green-500 to-emerald-600'
-    if (score >= 90) return 'from-yellow-500 to-amber-600'
-    return 'from-red-500 to-rose-600'
+    if (score >= 95) return 'bg-emerald-500 text-white'
+    if (score >= 90) return 'bg-amber-500 text-white'
+    return 'bg-red-500 text-white'
   }
 
   const getSLOColor = () => {
@@ -61,10 +61,10 @@ export default function HealthScore({ endpoints }) {
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className="rounded-xl border border-slate-700/50 bg-slate-800/30 backdrop-blur-md overflow-hidden shadow-2xl shadow-slate-950/50"
+      className="rounded-xl border border-slate-700/50 bg-slate-800 overflow-hidden shadow"
     >
       {/* Header */}
-      <div className="bg-gradient-to-r from-slate-800/50 to-slate-900/50 px-6 py-4 border-b border-slate-700/50 flex items-center justify-between">
+      <div className="bg-slate-900 px-6 py-4 border-b border-slate-700 flex items-center justify-between">
         <div>
           <h3 className="text-lg font-bold text-white">System Health & SLO</h3>
           <p className="text-xs text-slate-400 mt-1">Real-time health metrics and SLA compliance</p>
@@ -93,7 +93,7 @@ export default function HealthScore({ endpoints }) {
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.3 }}
-          className="col-span-1 md:col-span-2 rounded-lg bg-gradient-to-br from-slate-700/20 to-slate-900/40 border border-slate-700/50 p-4"
+          className="col-span-1 md:col-span-2 rounded-lg bg-slate-800 border border-slate-700/50 p-4"
         >
           <p className="text-xs text-slate-400 uppercase tracking-wider mb-3">Health Score</p>
           <div className="flex items-end gap-3">
@@ -105,7 +105,7 @@ export default function HealthScore({ endpoints }) {
                 duration: score < 90 ? 2 : 0,
                 repeat: score < 90 ? Infinity : 0,
               }}
-              className={`bg-gradient-to-r ${getScoreColor()} rounded-lg px-4 py-2`}
+              className={`${getScoreColor()} rounded-lg px-4 py-2`}
             >
               <p className="text-3xl font-bold text-white">{score}%</p>
             </motion.div>
@@ -122,7 +122,7 @@ export default function HealthScore({ endpoints }) {
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.3, delay: 0.1 }}
-          className="rounded-lg bg-gradient-to-br from-slate-700/20 to-slate-900/40 border border-slate-700/50 p-4 text-center"
+          className="rounded-lg bg-slate-800 border border-slate-700/50 p-4 text-center"
         >
           <p className="text-xs text-slate-400 uppercase tracking-wider mb-3">Uptime</p>
           <p className="text-2xl font-bold text-cyan-400">{uptime.toFixed(2)}%</p>
@@ -134,7 +134,7 @@ export default function HealthScore({ endpoints }) {
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.3, delay: 0.2 }}
-          className="rounded-lg bg-gradient-to-br from-slate-700/20 to-slate-900/40 border border-slate-700/50 p-4 text-center"
+          className="rounded-lg bg-slate-800 border border-slate-700/50 p-4 text-center"
         >
           <p className="text-xs text-slate-400 uppercase tracking-wider mb-3">SLO Target</p>
           <p className="text-2xl font-bold text-blue-400">99.90%</p>

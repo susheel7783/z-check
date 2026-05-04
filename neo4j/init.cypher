@@ -20,6 +20,13 @@ CREATE (ep2:Endpoint {id: 'ep-gmail-health', name: 'Gmail Health Check', url: 'h
 CREATE (ep3:Endpoint {id: 'ep-zapier-hook', name: 'Zapier Webhook Runner', url: 'https://hooks.zapier.com/hooks/catch/123456/abcde/', type: 'zapier', method: 'POST', status: 'DOWN', lastChecked: datetime()});
 CREATE (ep4:Endpoint {id: 'ep-salesforce-api', name: 'Salesforce REST API', url: 'https://login.salesforce.com/services/data/v56.0/', type: 'http', method: 'GET', status: 'UP', lastChecked: datetime()});
 
+// Dummy endpoints for demonstration
+CREATE (ep5:Endpoint {id: 'ep-dummy-payments', name: 'Payments API', url: 'http://localhost:8080/dummy/payments', type: 'http', method: 'GET', status: 'UP', lastChecked: datetime()});
+CREATE (ep6:Endpoint {id: 'ep-dummy-orders', name: 'Orders API', url: 'http://localhost:8080/dummy/orders', type: 'http', method: 'GET', status: 'UP', lastChecked: datetime()});
+CREATE (ep7:Endpoint {id: 'ep-dummy-inventory', name: 'Inventory API', url: 'http://localhost:8080/dummy/inventory', type: 'http', method: 'GET', status: 'UP', lastChecked: datetime()});
+CREATE (ep8:Endpoint {id: 'ep-dummy-gateway', name: 'Gateway API', url: 'http://localhost:8080/dummy/gateway', type: 'http', method: 'GET', status: 'UP', lastChecked: datetime()});
+CREATE (ep9:Endpoint {id: 'ep-dummy-auth', name: 'Authentication API', url: 'http://localhost:8080/dummy/auth', type: 'http', method: 'GET', status: 'UP', lastChecked: datetime()});
+
 CREATE (u1)-[:OWNS]->(org1);
 CREATE (u2)-[:OWNS]->(org2);
 
@@ -32,6 +39,53 @@ CREATE (svc1)-[:DEPENDS_ON]->(ep1);
 CREATE (svc3)-[:DEPENDS_ON]->(ep3);
 CREATE (svc2)-[:DEPENDS_ON]->(ep2);
 CREATE (svc4)-[:DEPENDS_ON]->(ep4);
+
+// Dummy services and relationships
+CREATE (svc5:Service {id: 'svc-dummy-payments', name: 'Dummy Payments Service', category: 'Payments', criticality: 'High'});
+CREATE (svc6:Service {id: 'svc-dummy-orders', name: 'Dummy Orders Service', category: 'Orders', criticality: 'High'});
+CREATE (svc7:Service {id: 'svc-dummy-inventory', name: 'Dummy Inventory Service', category: 'Inventory', criticality: 'Medium'});
+CREATE (svc8:Service {id: 'svc-dummy-gateway', name: 'Dummy Gateway Service', category: 'Gateway', criticality: 'High'});
+CREATE (svc9:Service {id: 'svc-dummy-auth', name: 'Dummy Auth Service', category: 'Authentication', criticality: 'High'});
+
+MATCH (org1:Organization {id: 'org-acme'})
+MATCH (svc5:Service {id: 'svc-dummy-payments'})
+CREATE (org1)-[:USES]->(svc5);
+
+MATCH (org1:Organization {id: 'org-acme'})
+MATCH (svc6:Service {id: 'svc-dummy-orders'})
+CREATE (org1)-[:USES]->(svc6);
+
+MATCH (org1:Organization {id: 'org-acme'})
+MATCH (svc7:Service {id: 'svc-dummy-inventory'})
+CREATE (org1)-[:USES]->(svc7);
+
+MATCH (org1:Organization {id: 'org-acme'})
+MATCH (svc8:Service {id: 'svc-dummy-gateway'})
+CREATE (org1)-[:USES]->(svc8);
+
+MATCH (org1:Organization {id: 'org-acme'})
+MATCH (svc9:Service {id: 'svc-dummy-auth'})
+CREATE (org1)-[:USES]->(svc9);
+
+MATCH (svc5:Service {id: 'svc-dummy-payments'})
+MATCH (ep5:Endpoint {id: 'ep-dummy-payments'})
+CREATE (svc5)-[:DEPENDS_ON]->(ep5);
+
+MATCH (svc6:Service {id: 'svc-dummy-orders'})
+MATCH (ep6:Endpoint {id: 'ep-dummy-orders'})
+CREATE (svc6)-[:DEPENDS_ON]->(ep6);
+
+MATCH (svc7:Service {id: 'svc-dummy-inventory'})
+MATCH (ep7:Endpoint {id: 'ep-dummy-inventory'})
+CREATE (svc7)-[:DEPENDS_ON]->(ep7);
+
+MATCH (svc8:Service {id: 'svc-dummy-gateway'})
+MATCH (ep8:Endpoint {id: 'ep-dummy-gateway'})
+CREATE (svc8)-[:DEPENDS_ON]->(ep8);
+
+MATCH (svc9:Service {id: 'svc-dummy-auth'})
+MATCH (ep9:Endpoint {id: 'ep-dummy-auth'})
+CREATE (svc9)-[:DEPENDS_ON]->(ep9);
 
 // Business impact query: find affected organizations when endpoints are DOWN and compute a risk level.
 // Risk level is defined as HIGH if more than 2 services depend on the affected endpoint, MEDIUM if 2, LOW otherwise.
